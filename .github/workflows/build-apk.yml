@@ -38,6 +38,29 @@ jobs:
       - name: Generate Android project files
         run: flutter create --platforms=android --org com.atmosweather .
 
+      - name: Ensure Android network permission
+        run: |
+          python - <<'PY'
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+
+          manifest = Path("android/app/src/main/AndroidManifest.xml")
+          android = "http://schemas.android.com/apk/res/android"
+          ET.register_namespace("android", android)
+          tree = ET.parse(manifest)
+          root = tree.getroot()
+          permission = f"{{{android}}}name"
+          if not any(
+              node.tag == "uses-permission"
+              and node.get(permission) == "android.permission.INTERNET"
+              for node in root
+          ):
+              node = ET.Element("uses-permission")
+              node.set(permission, "android.permission.INTERNET")
+              root.insert(0, node)
+              tree.write(manifest, encoding="utf-8", xml_declaration=True)
+          PY
+
       - name: Get Flutter dependencies
         run: flutter pub get
 

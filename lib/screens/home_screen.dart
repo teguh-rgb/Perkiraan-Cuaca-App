@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -11,7 +13,9 @@ String weatherImageFor(WeatherModel weather) {
   if (condition.contains('petir') || condition.contains('thunder')) {
     return 'assets/images/thunder_cloud.png';
   }
-  if (condition.contains('hujan') || condition.contains('rain')) {
+  if (condition.contains('hujan') ||
+      condition.contains('gerimis') ||
+      condition.contains('rain')) {
     return 'assets/images/rain_cloud.png';
   }
   if (condition.contains('cerah') || condition.contains('sun')) {
@@ -27,14 +31,62 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final WeatherService _weatherService = WeatherService();
-  late final Future<List<WeatherModel>> _weatherFuture;
+  List<WeatherModel>? _weather;
+  DateTime? _lastUpdated;
+  bool _isLoading = true;
+  bool _isRefreshing = false;
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
-    _weatherFuture = _weatherService.fetchWeatherData();
+    WidgetsBinding.instance.addObserver(this);
+    _refreshWeather();
+    _refreshTimer = Timer.periodic(
+      const Duration(minutes: 10),
+      (_) => _refreshWeather(),
+    );
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshWeather();
+    }
+  }
+
+  Future<void> _refreshWeather() async {
+    if (_isRefreshing) return;
+    setState(() {
+      _isRefreshing = true;
+    });
+    try {
+      final weather = await _weatherService.fetchWeatherData();
+      if (!mounted) return;
+      setState(() {
+        _weather = weather;
+        _lastUpdated = DateTime.now();
+        _isLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _isRefreshing = false);
+      }
+    }
   }
 
   @override
@@ -42,27 +94,31 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: AtmosBackground(
         child: SafeArea(
-          child: FutureBuilder<List<WeatherModel>>(
-            future: _weatherFuture,
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return Center(
-                  child: Text('Data cuaca tidak dapat dimuat: ${snapshot.error}'),
-                );
-              }
-              if (!snapshot.hasData) {
-                return const Center(
+          child: _isLoading && _weather == null
+              ? const Center(
                   child: CircularProgressIndicator(color: AppTheme.primary),
-                );
-              }
-              final weather = snapshot.data!;
+                )
+              : _weather == null
+                  ? Center(
+                      child: Text(
+                        'Data cuaca tidak dapat dimuat. Periksa koneksi internet.',
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                  : LayoutBuilder(
+            builder: (context, constraints) {
+              final weather = _weather!;
               final featured = weather.firstWhere(
                 (item) => item.city == 'Bandung',
                 orElse: () => weather.first,
               );
               final cities = weather.where((item) => item != featured).take(3).toList();
-              return LayoutBuilder(
-                builder: (context, constraints) => SingleChildScrollView(
+              return RefreshIndicator(
+                onRefresh: _refreshWeather,
+                color: AppTheme.primary,
+                backgroundColor: AppTheme.surface,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(minHeight: constraints.maxHeight - 32),
@@ -70,6 +126,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _Header(),
+                        const SizedBox(height: 8),
+                        _LiveStatus(
+                          isLive: weather.every((item) => item.isLive),
+                          updatedAt: _lastUpdated,
+                          isRefreshing: _isRefreshing,
+                        ),
                         const SizedBox(height: 24),
                         Text(
                           'Selamat siang',
@@ -82,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Langit ${featured.city} berawan, bawa jaket tipis hari ini.',
+                          'Langit ${featured.city} ${featured.condition.toLowerCase()} saat ini.',
                           style: GoogleFonts.inter(
                             fontSize: 14,
                             color: AppTheme.textSecondary,
@@ -261,6 +323,61 @@ class _Header extends StatelessWidget {
             border: Border.all(color: Colors.white.withOpacity(0.16)),
           ),
           child: const Icon(Icons.person_outline_rounded, size: 19),
+        ),
+      ],
+    );
+  }
+}
+
+class _LiveStatus extends StatelessWidget {
+  const _LiveStatus({
+    required this.isLive,
+    required this.updatedAt,
+    required this.isRefreshing,
+  });
+
+  final bool isLive;
+  final DateTime? updatedAt;
+  final bool isRefreshing;
+
+  @override
+  Widget build(BuildContext context) {
+    final time = updatedAt;
+    final label = isRefreshing
+        ? 'Memperbarui cuaca...'
+        : isLive
+            ? 'LIVE${time == null ? '' : ' · ${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}'}'
+            : 'Data tersimpan · offline';
+    final color = isLive ? const Color(0xFF79D6B2) : AppTheme.textSecondary;
+
+    return Row(
+      children: [
+        if (isRefreshing)
+          const SizedBox(
+            width: 8,
+            height: 8,
+            child: CircularProgressIndicator(strokeWidth: 1.5, color: AppTheme.primary),
+          )
+        else
+          Container(
+            width: 7,
+            height: 7,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+        const SizedBox(width: 7),
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.4,
+            color: color,
+          ),
+        ),
+        const Spacer(),
+        Text(
+          'Sumber: Open-Meteo',
+          style: GoogleFonts.inter(fontSize: 9, color: AppTheme.textSecondary),
         ),
       ],
     );
@@ -479,6 +596,7 @@ class _CityWeatherCard extends StatelessWidget {
   bool get isStormy {
     final condition = weather.condition.toLowerCase();
     return condition.contains('hujan') ||
+      condition.contains('gerimis') ||
         condition.contains('rain') ||
         condition.contains('petir') ||
         condition.contains('thunder');
