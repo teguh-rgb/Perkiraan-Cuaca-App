@@ -6,6 +6,20 @@ import '../services/weather_service.dart';
 import '../theme/app_theme.dart';
 import 'weather_detail_screen.dart';
 
+String weatherImageFor(WeatherModel weather) {
+  final condition = weather.condition.toLowerCase();
+  if (condition.contains('petir') || condition.contains('thunder')) {
+    return 'assets/images/thunder_cloud.png';
+  }
+  if (condition.contains('hujan') || condition.contains('rain')) {
+    return 'assets/images/rain_cloud.png';
+  }
+  if (condition.contains('cerah') || condition.contains('sun')) {
+    return 'assets/images/windy_sun.png';
+  }
+  return 'assets/images/partly_sunny_cloud.png';
+}
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -165,6 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
 }
 
 class _Header extends StatelessWidget {
@@ -342,7 +357,7 @@ class _FeaturedWeatherCard extends StatelessWidget {
                   child: Hero(
                     tag: 'weather-art-${weather.city}',
                     child: Image.asset(
-                      'assets/images/partly_sunny_cloud.png',
+                      weatherImageFor(weather),
                       fit: BoxFit.contain,
                     ),
                   ),
@@ -461,11 +476,17 @@ class _CityWeatherCard extends StatelessWidget {
   final WeatherModel weather;
   final VoidCallback onTap;
 
-  bool get isRainy => weather.condition.toLowerCase().contains('hujan');
+  bool get isStormy {
+    final condition = weather.condition.toLowerCase();
+    return condition.contains('hujan') ||
+        condition.contains('rain') ||
+        condition.contains('petir') ||
+        condition.contains('thunder');
+  }
 
   @override
   Widget build(BuildContext context) {
-    final accent = isRainy ? AppTheme.primary : AppTheme.amber;
+    final accent = isStormy ? AppTheme.primary : AppTheme.amber;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -493,7 +514,7 @@ class _CityWeatherCard extends StatelessWidget {
                 child: Hero(
                   tag: 'weather-art-${weather.city}',
                   child: Image.asset(
-                    isRainy ? 'assets/images/rain_cloud.png' : 'assets/images/windy_sun.png',
+                    weatherImageFor(weather),
                     fit: BoxFit.contain,
                   ),
                 ),

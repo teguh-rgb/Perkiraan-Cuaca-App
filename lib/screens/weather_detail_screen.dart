@@ -10,15 +10,9 @@ class WeatherDetailScreen extends StatelessWidget {
 
   final WeatherModel weather;
 
-  bool get isRainy => weather.condition.toLowerCase().contains('hujan');
-
   @override
   Widget build(BuildContext context) {
-    final image = isRainy
-        ? 'assets/images/rain_cloud.png'
-        : weather.condition.toLowerCase().contains('cerah')
-            ? 'assets/images/windy_sun.png'
-            : 'assets/images/partly_sunny_cloud.png';
+    final image = weatherImageFor(weather);
     return Scaffold(
       body: AtmosBackground(
         child: SafeArea(
