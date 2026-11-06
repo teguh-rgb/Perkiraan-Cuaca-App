@@ -101,17 +101,30 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                         const SizedBox(height: 18),
-                        SizedBox(
-                          height: 200,
-                          child: ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: cities.length,
-                            separatorBuilder: (_, __) => const SizedBox(width: 12),
-                            itemBuilder: (context, index) => _CityWeatherCard(
-                              weather: cities[index],
-                              onTap: () => _openDetails(context, cities[index]),
-                            ),
-                          ),
+                        LayoutBuilder(
+                          builder: (context, cityConstraints) {
+                            const spacing = 12.0;
+                            final columns = cityConstraints.maxWidth < 300 ? 2 : 3;
+                            final cardWidth =
+                                (cityConstraints.maxWidth - spacing * (columns - 1)) /
+                                    columns;
+                            return GridView.builder(
+                              padding: EdgeInsets.zero,
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: cities.length,
+                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: columns,
+                                crossAxisSpacing: spacing,
+                                mainAxisSpacing: spacing,
+                                childAspectRatio: cardWidth / 190,
+                              ),
+                              itemBuilder: (context, index) => _CityWeatherCard(
+                                weather: cities[index],
+                                onTap: () => _openDetails(context, cities[index]),
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -372,46 +385,43 @@ class _CityWeatherCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = isRainy ? AppTheme.primary : AppTheme.amber;
-    return SizedBox(
-      width: 107,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(24),
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 14),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: accent.withOpacity(0.32)),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [accent.withOpacity(0.17), Colors.white.withOpacity(0.035), const Color(0x14111B2B)],
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(24),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: accent.withOpacity(0.32)),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [accent.withOpacity(0.17), Colors.white.withOpacity(0.035), const Color(0x14111B2B)],
+            ),
+            boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 24, offset: Offset(0, 12))],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              SizedBox(
+                height: 76,
+                width: double.infinity,
+                child: Image.asset(
+                  isRainy ? 'assets/images/rain_cloud.png' : 'assets/images/windy_sun.png',
+                  fit: BoxFit.contain,
+                ),
               ),
-              boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 24, offset: Offset(0, 12))],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                SizedBox(
-                  height: 84,
-                  width: double.infinity,
-                  child: Image.asset(
-                    isRainy ? 'assets/images/rain_cloud.png' : 'assets/images/windy_sun.png',
-                    fit: BoxFit.contain,
-                  ),
-                ),
-                Text(weather.city, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600)),
-                Text('${weather.temperature}°C', style: GoogleFonts.spaceGrotesk(fontSize: 28, height: 1, fontWeight: FontWeight.bold)),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: accent.withOpacity(0.17), borderRadius: BorderRadius.circular(11)),
-                  child: Text(weather.condition, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.inter(fontSize: 10, color: accent, fontWeight: FontWeight.w500)),
-                ),
-              ],
-            ),
+              Text(weather.city, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600)),
+              Text('${weather.temperature}°C', style: GoogleFonts.spaceGrotesk(fontSize: 28, height: 1, fontWeight: FontWeight.bold)),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(color: accent.withOpacity(0.17), borderRadius: BorderRadius.circular(11)),
+                child: Text(weather.condition, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.inter(fontSize: 10, color: accent, fontWeight: FontWeight.w500)),
+              ),
+            ],
           ),
         ),
       ),
