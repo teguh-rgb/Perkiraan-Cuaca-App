@@ -247,80 +247,138 @@ class _FeaturedWeatherCard extends StatelessWidget {
         onTap: onTap,
         child: Container(
           height: 312,
-          padding: const EdgeInsets.all(22),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(32),
             border: Border.all(color: Colors.white.withOpacity(0.18)),
-            gradient: const LinearGradient(
+            gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0x3BB9A8FF), Color(0x12FFFFFF), Color(0x080D18)],
+              colors: [
+                Colors.white.withOpacity(0.13),
+                Colors.white.withOpacity(0.03),
+              ],
+              stops: const [0.146, 0.854],
             ),
             boxShadow: const [
               BoxShadow(color: Color(0x55000000), blurRadius: 36, offset: Offset(0, 20)),
             ],
           ),
-          child: Stack(
-            clipBehavior: Clip.hardEdge,
-            children: [
-              Positioned(
-                right: -24,
-                top: -14,
-                width: 190,
-                height: 178,
-                child: Image.asset('assets/images/partly_sunny_cloud.png', fit: BoxFit.contain),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(32),
+            child: Stack(
+              clipBehavior: Clip.hardEdge,
+              children: [
+                Positioned.fill(
+                  child: DecoratedBox(
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.10),
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: Colors.white.withOpacity(0.15)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.location_on_rounded, size: 14, color: AppTheme.primary),
-                        const SizedBox(width: 5),
-                        Text(weather.city, style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600)),
-                      ],
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        stops: const [0, 0.6, 1],
+                        colors: [
+                          const Color(0xFFB9A8FF).withOpacity(0.22),
+                          const Color(0xFFB9A8FF).withOpacity(0.03),
+                          Colors.transparent,
+                        ],
+                      ),
                     ),
                   ),
-                  const Spacer(),
-                  Row(
+                ),
+                const Positioned(
+                  left: 119,
+                  top: -61,
+                  child: _Glow(
+                    width: 300,
+                    height: 260,
+                    color: Color(0xFFB9A8FF),
+                    opacity: 0.45,
+                  ),
+                ),
+                const Positioned(
+                  left: 189,
+                  top: 9,
+                  child: _Glow(
+                    width: 190,
+                    height: 170,
+                    color: Color(0xFFFFC76B),
+                    opacity: 0.38,
+                  ),
+                ),
+                const Positioned(
+                  left: -51,
+                  top: 149,
+                  child: _Glow(
+                    width: 170,
+                    height: 150,
+                    color: Color(0xFFC8D2E2),
+                    opacity: 0.30,
+                  ),
+                ),
+                const Positioned(
+                  left: 159,
+                  top: 9,
+                  width: 188,
+                  height: 153,
+                  child: Image(
+                    image: AssetImage('assets/images/partly_sunny_cloud.png'),
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(22),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        '${weather.temperature}',
-                        style: GoogleFonts.spaceGrotesk(
-                          fontSize: 82,
-                          height: 0.95,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: -3,
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.10),
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(color: Colors.white.withOpacity(0.15)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.location_on_rounded, size: 14, color: AppTheme.primary),
+                            const SizedBox(width: 5),
+                            Text(weather.city, style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600)),
+                          ],
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 5),
-                        child: Text('°C', style: GoogleFonts.spaceGrotesk(fontSize: 28, color: const Color(0xFFC8D2E2))),
+                      const Spacer(),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${weather.temperature}',
+                            style: GoogleFonts.spaceGrotesk(
+                              fontSize: 82,
+                              height: 0.95,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: -3,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 5),
+                            child: Text('°C', style: GoogleFonts.spaceGrotesk(fontSize: 28, color: const Color(0xFFC8D2E2))),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 7),
+                      Text(weather.condition, style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w500)),
+                      const Spacer(),
+                      Row(
+                        children: [
+                          Expanded(child: _MetricPill(icon: Icons.water_drop_outlined, label: 'Kelembapan', value: '${weather.humidity}%')),
+                          const SizedBox(width: 10),
+                          Expanded(child: _MetricPill(icon: Icons.air_rounded, label: 'Kecepatan Angin', value: '${weather.windSpeed} km/h')),
+                        ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 7),
-                  Text(weather.condition, style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w500)),
-                  const Spacer(),
-                  Row(
-                    children: [
-                      Expanded(child: _MetricPill(icon: Icons.water_drop_outlined, label: 'Kelembapan', value: '${weather.humidity}%')),
-                      const SizedBox(width: 10),
-                      Expanded(child: _MetricPill(icon: Icons.air_rounded, label: 'Kecepatan Angin', value: '${weather.windSpeed} km/h')),
-                    ],
-                  ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -438,37 +496,68 @@ class AtmosBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF15192D), Color(0xFF080D18), Color(0xFF101A29)],
-          stops: [0, 0.48, 1],
-        ),
+        color: AppTheme.background,
       ),
       child: Stack(
         children: [
           Positioned(
             top: -160,
             left: -100,
-            child: _Glow(size: 430, color: const Color(0xFF9C87FF).withOpacity(0.15)),
+            child: const _Glow(
+              width: 560,
+              height: 440,
+              color: Color(0xFFB9A8FF),
+              opacity: 0.34,
+            ),
           ),
           Positioned(
-            top: 10,
-            right: -170,
-            child: _Glow(size: 360, color: const Color(0xFFFFC76B).withOpacity(0.08)),
+            top: 40,
+            left: 190,
+            child: const _Glow(
+              width: 320,
+              height: 280,
+              color: Color(0xFFFFC76B),
+              opacity: 0.20,
+            ),
           ),
           Positioned(
-            bottom: 40,
+            top: 540,
             left: -190,
-            child: _Glow(size: 420, color: const Color(0xFF438CFF).withOpacity(0.10)),
+            child: const _Glow(
+              width: 460,
+              height: 380,
+              color: Color(0xFF65B8FF),
+              opacity: 0.20,
+            ),
           ),
           Positioned(
-            top: -130,
-            right: -130,
-            child: Container(
-              width: 390,
-              height: 390,
-              decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Colors.white.withOpacity(0.035))),
+            top: -120,
+            left: 130,
+            child: const _OrbitRing(size: 380, opacity: 0.07),
+          ),
+          const Positioned(
+            top: -200,
+            left: 50,
+            child: _OrbitRing(size: 540, opacity: 0.04),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: 260,
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      const Color(0xFF111B2B).withOpacity(0.9),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
           child,
@@ -479,10 +568,39 @@ class AtmosBackground extends StatelessWidget {
 }
 
 class _Glow extends StatelessWidget {
-  const _Glow({required this.size, required this.color});
+  const _Glow({
+    required this.width,
+    required this.height,
+    required this.color,
+    required this.opacity,
+  });
+
+  final double width;
+  final double height;
+  final Color color;
+  final double opacity;
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Container(
+        width: width,
+        height: height,
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            colors: [color.withOpacity(opacity), color.withOpacity(0)],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _OrbitRing extends StatelessWidget {
+  const _OrbitRing({required this.size, required this.opacity});
 
   final double size;
-  final Color color;
+  final double opacity;
 
   @override
   Widget build(BuildContext context) {
@@ -492,7 +610,7 @@ class _Glow extends StatelessWidget {
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: RadialGradient(colors: [color, color.withOpacity(0)]),
+          border: Border.all(color: Colors.white.withOpacity(opacity)),
         ),
       ),
     );
