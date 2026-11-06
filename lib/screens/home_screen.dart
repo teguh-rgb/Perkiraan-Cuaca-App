@@ -140,8 +140,28 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _openDetails(BuildContext context, WeatherModel weather) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => WeatherDetailScreen(weather: weather),
+      PageRouteBuilder<void>(
+        transitionDuration: const Duration(milliseconds: 420),
+        reverseTransitionDuration: const Duration(milliseconds: 320),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            WeatherDetailScreen(weather: weather),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final curved = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+            reverseCurve: Curves.easeInCubic,
+          );
+          return FadeTransition(
+            opacity: curved,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, 0.035),
+                end: Offset.zero,
+              ).animate(curved),
+              child: child,
+            ),
+          );
+        },
       ),
     );
   }
@@ -314,14 +334,17 @@ class _FeaturedWeatherCard extends StatelessWidget {
                     opacity: 0.30,
                   ),
                 ),
-                const Positioned(
+                Positioned(
                   left: 159,
                   top: 9,
                   width: 188,
                   height: 153,
-                  child: Image(
-                    image: AssetImage('assets/images/partly_sunny_cloud.png'),
-                    fit: BoxFit.contain,
+                  child: Hero(
+                    tag: 'weather-art-${weather.city}',
+                    child: Image.asset(
+                      'assets/images/partly_sunny_cloud.png',
+                      fit: BoxFit.contain,
+                    ),
                   ),
                 ),
                 Padding(
@@ -467,9 +490,12 @@ class _CityWeatherCard extends StatelessWidget {
               SizedBox(
                 height: 76,
                 width: double.infinity,
-                child: Image.asset(
-                  isRainy ? 'assets/images/rain_cloud.png' : 'assets/images/windy_sun.png',
-                  fit: BoxFit.contain,
+                child: Hero(
+                  tag: 'weather-art-${weather.city}',
+                  child: Image.asset(
+                    isRainy ? 'assets/images/rain_cloud.png' : 'assets/images/windy_sun.png',
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
               Text(weather.city, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600)),

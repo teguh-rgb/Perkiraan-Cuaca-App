@@ -77,7 +77,15 @@ class WeatherDetailScreen extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            Image.asset(image, fit: BoxFit.contain, width: 300, height: 250),
+                            Hero(
+                              tag: 'weather-art-${weather.city}',
+                              child: Image.asset(
+                                image,
+                                fit: BoxFit.contain,
+                                width: 300,
+                                height: 250,
+                              ),
+                            ),
                           ],
                         ),
                       ),
