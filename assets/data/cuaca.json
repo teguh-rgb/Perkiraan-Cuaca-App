@@ -1,0 +1,37 @@
+[
+    {
+        "kota": "Bandung",
+        "suhu": 24,
+        "kondisi": "Berawan",
+        "kelembaban": 78,
+        "kecepatan_angin": 12
+    },
+    {
+        "kota": "Jakarta",
+        "suhu": 32,
+        "kondisi": "Cerah",
+        "kelembaban": 62,
+        "kecepatan_angin": 8
+    },
+    {
+        "kota": "Bogor",
+        "suhu": 23,
+        "kondisi": "Hujan",
+        "kelembaban": 88,
+        "kecepatan_angin": 12
+    },
+    {
+        "kota": "Surabaya",
+        "suhu": 31,
+        "kondisi": "Cerah",
+        "kelembaban": 66,
+        "kecepatan_angin": 9
+    },
+    {
+        "kota": "Yogyakarta",
+        "suhu": 26,
+        "kondisi": "Berawan",
+        "kelembaban": 75,
+        "kecepatan_angin": 8
+    }
+]
